@@ -1,7 +1,3 @@
-provider "aws" {
-  region = "ap-northeast-2"
-}
-
 # 1) infra-admin 사용자 (인프라 전체 관리자)
 resource "aws_iam_user" "infra_admin" {
   name = "infra-admin"
