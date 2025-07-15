@@ -7,3 +7,5 @@
 
 # local
 .env
+.github/
+.vscode/
