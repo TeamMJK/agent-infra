@@ -1,8 +1,8 @@
-<img width="962" height="991" alt="image" src="https://github.com/user-attachments/assets/bd6db108-9c8e-4658-aec0-d04016528549" />
+<img width="933" height="935" alt="image" src="https://github.com/user-attachments/assets/38f52a57-5f3c-460d-abb8-63ae7b675ff3" />
 
 <br>
 
-## 아키텍쳐 수정 2025.07.12
+## 아키텍쳐 수정 2025.07.16
 Free-Tier 기간내에 활용할 수 있는 리소스들을 적극 도입하여 비용 최적화
 
 ## Multi-AZ Subnets-Provision-Only 
@@ -18,3 +18,5 @@ Free-Tier 기간내에 활용할 수 있는 리소스들을 적극 도입하여 
 | **ALB** | 유지 (TLS 종단, WAF) | **유지** – EC2 Target Group으로 변경 |
 | **CloudFront + S3** | 그대로 유지 | 변경 없음 |
 | **WAF** | 유지 | 변경 없음 |
+
+- OIDC 기반 AssumeRole 방식의 인증을 사용한 CI/CD 파이프라인 구성 및 테스트
