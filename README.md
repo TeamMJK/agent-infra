@@ -1,4 +1,5 @@
-<img width="933" height="935" alt="image" src="https://github.com/user-attachments/assets/38f52a57-5f3c-460d-abb8-63ae7b675ff3" />
+
+<img width="998" height="988" alt="capstone-arch" src="https://github.com/user-attachments/assets/87058e3f-3b02-4b01-a255-43b3b9b7416d" />
 
 <br>
 
