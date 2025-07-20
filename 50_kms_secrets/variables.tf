@@ -11,5 +11,4 @@ variable "gemini_api_key" {
 variable "db_password_length" {
   description = "DB 비밀번호 길이"
   type        = number
-  default     = 16
 }

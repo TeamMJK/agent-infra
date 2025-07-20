@@ -3,7 +3,7 @@ variable "github_owner" {
   type        = string
 }
 
-variable "github_repo" {
+variable "github_repo_frontend" {
   description = "GitHub 레포지토리 이름"
   type        = string
 }
