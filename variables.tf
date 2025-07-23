@@ -10,6 +10,12 @@ variable "aws_account_id" {
   type        = string
 }
 
+variable "ssh_allowed_ip" {
+  description = "EC2 SSH 접근 허용 IP"
+  type        = string
+  sensitive   = true
+}
+
 # GitHub OIDC 설정 변수들
 variable "github_owner" {
   description = "GitHub 조직/사용자 명 (owner)"
@@ -55,3 +61,16 @@ variable "app_sg_ids" {
   type        = list(string)
   default     = []
 }
+
+# EC2 설정 변수들
+variable "key_pair_name" {
+  description = "EC2 인스턴스에 사용할 키 페어 이름"
+  type        = string
+}
+
+variable "ec2_instance_type" {
+  description = "EC2 인스턴스 유형"
+  type        = string
+}
+
+
