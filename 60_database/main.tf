@@ -37,7 +37,7 @@ resource "aws_db_instance" "db" {
   identifier        = "teammjk-app-db"
   engine            = "postgres"    # Postgres 엔진 
   instance_class    = "db.t3.micro" # Free Tier 인스턴스
-  allocated_storage = 10            # Free Tier 범위 (최대10GB)
+  allocated_storage = 20            # Free Tier 범위 (최대20GB)
   db_name           = "teammjkdb"   # 생성할 DB 이름
   username          = "masteruser"  # 5단계에서 생성된 DB 시크릿 연동
   password          = var.db_password
