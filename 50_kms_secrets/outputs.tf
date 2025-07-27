@@ -6,12 +6,12 @@ output "db_password" {
 
 output "db_secret_arn" {
   value       = aws_secretsmanager_secret.db.arn
-  description = "Secrets Manager /prod/db 시크릿 ARN"
+  description = "Secrets Manager /teammjk/db 시크릿 ARN"
 }
 
 output "gemini_secret_arn" {
   value       = aws_secretsmanager_secret.gemini.arn
-  description = "Secrets Manager /prod/geminiApiKey 시크릿 ARN"
+  description = "Secrets Manager /teammjk/geminiApiKey 시크릿 ARN"
 }
 
 output "kms_key_arn" {
