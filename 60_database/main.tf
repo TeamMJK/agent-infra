@@ -5,34 +5,7 @@ resource "aws_db_subnet_group" "db_subnet_group" {
   description = "RDS Private Subnet Group for teammjk"
 }
 
-# 2) DB 전용 Security Group
-resource "aws_security_group" "db_sg" {
-  name        = "teammjk-db-sg"
-  description = "Allow Postgres access from application servers"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    description     = "Postgres access from app & agent"
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = var.app_sg_ids # 앱서버 SG ID 참조
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "teammjk-db-sg"
-    Team = "infra"
-  }
-}
-
-# 3) RDS 인스턴스
+# 2) RDS 인스턴스
 resource "aws_db_instance" "db" {
   identifier        = "teammjk-app-db"
   engine            = "postgres"    # Postgres 엔진 
@@ -45,7 +18,7 @@ resource "aws_db_instance" "db" {
 
   # 네트워크
   db_subnet_group_name   = aws_db_subnet_group.db_subnet_group.name # Subnet Group 연결
-  vpc_security_group_ids = [aws_security_group.db_sg.id]
+  vpc_security_group_ids = [var.db_sg_id]
 
   # 보안: 비공개 접근만 허용
   publicly_accessible = false # public 접근 차단

@@ -1,3 +1,9 @@
+variable "aws_region" {
+  description = "AWS 리전"
+  type        = string
+  default = "ap-northeast-2"
+}
+
 # 기본 인프라 설정 변수들
 variable "gemini_api_key" {
   description = "Gemini(Google) API Key"
@@ -72,5 +78,31 @@ variable "ec2_instance_type" {
   description = "EC2 인스턴스 유형"
   type        = string
 }
+
+# Network 설정 변수들
+variable "public_subnet_cidrs" {
+  description = "Public subnet CIDR blocks"
+  type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24"]
+}
+
+variable "private_app_subnet_cidrs" {
+  description = "Private app subnet CIDR blocks"
+  type        = list(string)
+  default     = ["10.0.101.0/24", "10.0.102.0/24"]
+}
+
+variable "private_db_subnet_cidrs" {
+  description = "Private db subnet CIDR blocks"
+  type        = list(string)
+  default     = ["10.0.201.0/24", "10.0.202.0/24"]
+}
+
+variable "availability_zones" {
+  description = "Availability zones list"
+  type        = list(string)
+  default     = ["ap-northeast-2a", "ap-northeast-2b"]
+}
+
 
 

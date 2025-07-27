@@ -29,7 +29,7 @@ resource "aws_kms_alias" "secrets_alias" {
 
 # 3) Secrets Manager 시크릿: Gemini API Key
 resource "aws_secretsmanager_secret" "gemini" {
-  name         = "/prod/geminiApiKey"
+  name         = "/teammjk/geminiApiKey"
   description  = "Gemini (Google) API Key"
   kms_key_id   = aws_kms_key.secrets.arn
   recovery_window_in_days = 7
@@ -45,7 +45,7 @@ resource "aws_secretsmanager_secret_version" "gemini_version" {
 
 # 4) Secrets Manager 시크릿: DB 자격증명
 resource "aws_secretsmanager_secret" "db" {
-  name         = "/prod/db"
+  name         = "/teammjk/db"
   description  = "RDS Master user password"
   kms_key_id   = aws_kms_key.secrets.arn
   recovery_window_in_days = 7

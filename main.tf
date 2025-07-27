@@ -5,13 +5,17 @@ provider "aws" {
 # 1. 네트워크 기반 모듈
 module "network" {
   source = "./10_network"
+
+  public_subnet_cidrs      = var.public_subnet_cidrs
+  private_app_subnet_cidrs = var.private_app_subnet_cidrs
+  private_db_subnet_cidrs  = var.private_db_subnet_cidrs
+  availability_zones       = var.availability_zones
 }
 
 # 2. IAM 사용자 및 정책 모듈
 module "iam" {
   source = "./20_iam"
 
-  # kms_secrets 모듈의 출력을 iam 모듈 입력으로 전달
   db_secret_arn     = module.kms_secrets.db_secret_arn
   gemini_secret_arn = module.kms_secrets.gemini_secret_arn
 }
@@ -20,7 +24,6 @@ module "iam" {
 module "static_website" {
   source = "./30_static_website"
 
-  # 루트 변수에서 값 전달
   bucket_name        = var.bucket_name
   cloudfront_comment = var.cloudfront_comment
 }
@@ -29,12 +32,10 @@ module "static_website" {
 module "github_oidc" {
   source = "./40_github_oicd"
 
-  # 루트 변수에서 값 전달
   github_owner         = var.github_owner
   github_repo_frontend = var.github_repo_frontend
   aws_account_id       = var.aws_account_id
 
-  # 다른 모듈의 출력값 전달
   s3_bucket                  = module.static_website.bucket_name
   cloudfront_distribution_id = module.static_website.cloudfront_distribution_id
 }
@@ -43,46 +44,98 @@ module "github_oidc" {
 module "kms_secrets" {
   source = "./50_kms_secrets"
 
-  # 루트 변수에서 값 전달
   kms_alias_name     = var.kms_alias_name
   gemini_api_key     = var.gemini_api_key
   db_password_length = var.db_password_length
 }
 
 # 6. 데이터베이스 모듈
+resource "aws_db_subnet_group" "main" {
+  name       = "teammjk-db-subnet-group"
+  subnet_ids = module.network.private_db_subnet_ids
+
+  tags = {
+    Name = "TeamMJK DB Subnet Group"
+  }
+}
+
 module "database" {
   source = "./60_database"
 
-  # 루트 변수에서 값 전달
-  # app_sg_ids = var.app_sg_ids # 이 부분을 주석 처리하거나 삭제합니다.
-
-  # 다른 모듈의 출력값 전달
   vpc_id             = module.network.vpc_id
-  private_subnet_ids = module.network.private_subnet_ids
-  app_sg_ids         = [module.compute.app_sg_id] # compute 모듈의 출력값을 직접 사용합니다.
+  db_sg_id           = module.security.db_sg_id
+  private_subnet_ids = module.network.private_db_subnet_ids
 
-  kms_key_arn        = module.kms_secrets.kms_key_arn
-  db_password        = module.kms_secrets.db_password
+  kms_key_arn = module.kms_secrets.kms_key_arn
+  db_password = module.kms_secrets.db_password
 }
 
 # 7. ECR 모듈
 module "ecr" {
-  source = "./70_ecr" 
+  source = "./70_ecr"
 }
 
-# 8. 컴퓨트 모듈
-module "compute" {
-  source = "./80_compute"
+# 8. 보안 그룹 모듈
+module "security" {
+  source = "./security"
 
-  # 루트 변수에서 값 전달
-  key_pair_name   = var.key_pair_name
-  instance_type   = var.ec2_instance_type
-  aws_account_id  = var.aws_account_id
-  ssh_allowed_ip  = var.ssh_allowed_ip
+  vpc_id         = module.network.vpc_id
+  ssh_allowed_ip = var.ssh_allowed_ip
+}
 
-  # 다른 모듈의 출력값 전달
-  vpc_id          = module.network.vpc_id
-  public_subnets  = module.network.public_subnet_ids
-  db_instance_endpoint = module.database.db_instance_endpoint
-  db_instance_port   = module.database.db_instance_port
+# 9. 컴퓨트 모듈 (Agent)
+module "compute_agent" {
+  source   = "./80_compute"
+  for_each = { for i, subnet_id in module.network.public_subnet_ids : i => subnet_id }
+
+  aws_region            = var.aws_region
+  instance_name         = "teammjk-agent-instance-${each.key + 1}"
+  key_pair_name         = var.key_pair_name
+  ec2_instance_type     = var.ec2_instance_type
+  aws_account_id        = var.aws_account_id
+  ssh_allowed_ip        = var.ssh_allowed_ip
+
+  vpc_id                = module.network.vpc_id
+  subnet_id             = each.value
+
+  user_data_script_path = "./80_compute/user_data_agent.sh"
+  security_group_ids    = [module.security.agent_sg_id]
+}
+
+# 9. 컴퓨트 모듈 (Backend)
+module "compute_backend" {
+  source   = "./80_compute"
+  for_each = { for i, subnet_id in module.network.private_app_subnet_ids : i => subnet_id }
+
+  aws_region            = var.aws_region
+  instance_name         = "teammjk-backend-instance-${each.key + 1}"
+  key_pair_name         = var.key_pair_name
+  ec2_instance_type     = var.ec2_instance_type
+  aws_account_id        = var.aws_account_id
+  ssh_allowed_ip        = var.ssh_allowed_ip
+
+  vpc_id                = module.network.vpc_id
+  subnet_id             = each.value
+
+  user_data_script_path = "./80_compute/user_data_backend.sh"
+  security_group_ids    = [module.security.backend_sg_id]
+
+  db_instance_endpoint  = module.database.db_instance_endpoint
+  db_instance_port      = module.database.db_instance_port
+  elasticache_endpoint  = module.elasticache.elasticache_endpoint
+}
+
+# 10. ElastiCache 모듈
+resource "aws_elasticache_subnet_group" "main" {
+  name       = "teammjk-elasticache-subnet-group"
+  subnet_ids = module.network.private_db_subnet_ids
+}
+
+module "elasticache" {
+  source = "./90_elasticache"
+
+  cluster_id         = "teammjk-redis-cluster"
+  node_type          = "cache.t3.micro"
+  security_group_ids = [module.security.elasticache_sg_id]
+  private_subnet_ids = module.network.private_db_subnet_ids
 }
