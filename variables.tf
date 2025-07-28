@@ -80,7 +80,7 @@ variable "ec2_instance_type" {
 }
 
 # Network 설정 변수들
-variable "public_subnet_cidrs" {
+variable "public_agent_subnet_cidrs" {
   description = "Public subnet CIDR blocks"
   type        = list(string)
   default     = ["10.0.1.0/24", "10.0.2.0/24"]

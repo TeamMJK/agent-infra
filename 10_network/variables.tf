@@ -1,4 +1,10 @@
-variable "public_subnet_cidrs" {
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  
+}
+
+variable "public_agent_subnet_cidrs" {
   description = "List of public subnet CIDR blocks"
   type        = list(string)
 }

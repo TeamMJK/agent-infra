@@ -6,10 +6,11 @@ provider "aws" {
 module "network" {
   source = "./10_network"
 
-  public_subnet_cidrs      = var.public_subnet_cidrs
-  private_app_subnet_cidrs = var.private_app_subnet_cidrs
-  private_db_subnet_cidrs  = var.private_db_subnet_cidrs
-  availability_zones       = var.availability_zones
+  public_agent_subnet_cidrs = var.public_agent_subnet_cidrs
+  private_app_subnet_cidrs  = var.private_app_subnet_cidrs
+  private_db_subnet_cidrs   = var.private_db_subnet_cidrs
+  availability_zones        = var.availability_zones
+  aws_region                = var.aws_region
 }
 
 # 2. IAM 사용자 및 정책 모듈
@@ -50,15 +51,6 @@ module "kms_secrets" {
 }
 
 # 6. 데이터베이스 모듈
-resource "aws_db_subnet_group" "main" {
-  name       = "teammjk-db-subnet-group"
-  subnet_ids = module.network.private_db_subnet_ids
-
-  tags = {
-    Name = "TeamMJK DB Subnet Group"
-  }
-}
-
 module "database" {
   source = "./60_database"
 
@@ -69,6 +61,17 @@ module "database" {
   kms_key_arn = module.kms_secrets.kms_key_arn
   db_password = module.kms_secrets.db_password
 }
+
+# 6. ElastiCache for Redis 모듈
+module "elasticache" {
+  source = "./60_elasticache"
+
+  cluster_id         = "teammjk-redis-cluster"
+  node_type          = "cache.t3.micro"
+  security_group_ids = [module.security.elasticache_sg_id]
+  private_subnet_ids = module.network.private_db_subnet_ids
+}
+
 
 # 7. ECR 모듈
 module "ecr" {
@@ -88,15 +91,15 @@ module "compute_agent" {
   source   = "./80_compute"
   for_each = { for i, subnet_id in module.network.public_subnet_ids : i => subnet_id }
 
-  aws_region            = var.aws_region
-  instance_name         = "teammjk-agent-instance-${each.key + 1}"
-  key_pair_name         = var.key_pair_name
-  ec2_instance_type     = var.ec2_instance_type
-  aws_account_id        = var.aws_account_id
-  ssh_allowed_ip        = var.ssh_allowed_ip
+  aws_region        = var.aws_region
+  instance_name     = "teammjk-agent-instance-${each.key + 1}"
+  key_pair_name     = var.key_pair_name
+  ec2_instance_type = var.ec2_instance_type
+  aws_account_id    = var.aws_account_id
+  ssh_allowed_ip    = var.ssh_allowed_ip
 
-  vpc_id                = module.network.vpc_id
-  subnet_id             = each.value
+  vpc_id    = module.network.vpc_id
+  subnet_id = each.value
 
   user_data_script_path = "./80_compute/user_data_agent.sh"
   security_group_ids    = [module.security.agent_sg_id]
@@ -107,35 +110,20 @@ module "compute_backend" {
   source   = "./80_compute"
   for_each = { for i, subnet_id in module.network.private_app_subnet_ids : i => subnet_id }
 
-  aws_region            = var.aws_region
-  instance_name         = "teammjk-backend-instance-${each.key + 1}"
-  key_pair_name         = var.key_pair_name
-  ec2_instance_type     = var.ec2_instance_type
-  aws_account_id        = var.aws_account_id
-  ssh_allowed_ip        = var.ssh_allowed_ip
+  aws_region        = var.aws_region
+  instance_name     = "teammjk-backend-instance-${each.key + 1}"
+  key_pair_name     = var.key_pair_name
+  ec2_instance_type = var.ec2_instance_type
+  aws_account_id    = var.aws_account_id
+  ssh_allowed_ip    = var.ssh_allowed_ip
 
-  vpc_id                = module.network.vpc_id
-  subnet_id             = each.value
+  vpc_id    = module.network.vpc_id
+  subnet_id = each.value
 
   user_data_script_path = "./80_compute/user_data_backend.sh"
   security_group_ids    = [module.security.backend_sg_id]
 
-  db_instance_endpoint  = module.database.db_instance_endpoint
-  db_instance_port      = module.database.db_instance_port
-  elasticache_endpoint  = module.elasticache.elasticache_endpoint
-}
-
-# 10. ElastiCache 모듈
-resource "aws_elasticache_subnet_group" "main" {
-  name       = "teammjk-elasticache-subnet-group"
-  subnet_ids = module.network.private_db_subnet_ids
-}
-
-module "elasticache" {
-  source = "./90_elasticache"
-
-  cluster_id         = "teammjk-redis-cluster"
-  node_type          = "cache.t3.micro"
-  security_group_ids = [module.security.elasticache_sg_id]
-  private_subnet_ids = module.network.private_db_subnet_ids
+  db_instance_endpoint = module.database.db_instance_endpoint
+  db_instance_port     = module.database.db_instance_port
+  elasticache_endpoint = module.elasticache.elasticache_endpoint
 }
