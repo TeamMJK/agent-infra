@@ -38,7 +38,7 @@ variable "github_repo_frontend" {
 variable "github_repo_backend" {
   description = "백엔드 GitHub 레포지토리 이름"
   type        = string
-  default     = "trip-agent-infra"
+  default     = "agent-backend"
 }
 
 variable "spring_ecr_arn" {

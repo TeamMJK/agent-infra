@@ -5,7 +5,7 @@ output "vpc_id" {
 
 output "public_subnet_ids" {
   description = "List of IDs of public subnets"
-  value       = [for s in aws_subnet.public : s.id]
+  value       = [for s in aws_subnet.public_agent : s.id]
 }
 
 output "private_app_subnet_ids" {
@@ -16,4 +16,9 @@ output "private_app_subnet_ids" {
 output "private_db_subnet_ids" {
   description = "List of IDs of private database subnets"
   value       = [for s in aws_subnet.private_db : s.id]
+}
+
+output "vpc_endpoint_sg_id" {
+  description = "The ID of the security group for VPC endpoints"
+  value       = aws_security_group.vpc_endpoint.id
 }

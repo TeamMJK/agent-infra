@@ -17,3 +17,9 @@ output "cloudfront_distribution_id" {
   value       = aws_cloudfront_distribution.cdn.id
   description = "CloudFront 배포 ID"
 }
+
+output "cloudfront_distribution_arn" {
+  value       = aws_cloudfront_distribution.cdn.arn
+  description = "CloudFront 배포 ARN"
+  
+}

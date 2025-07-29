@@ -4,7 +4,7 @@ provider "aws" {
 
 # 1. 네트워크 기반 모듈
 module "network" {
-  source = "./10_network"
+  source = "./network"
 
   public_agent_subnet_cidrs = var.public_agent_subnet_cidrs
   private_app_subnet_cidrs  = var.private_app_subnet_cidrs
@@ -15,7 +15,7 @@ module "network" {
 
 # 2. IAM 사용자 및 정책 모듈
 module "iam" {
-  source = "./20_iam"
+  source = "./iam"
 
   db_secret_arn     = module.kms_secrets.db_secret_arn
   gemini_secret_arn = module.kms_secrets.gemini_secret_arn
@@ -23,7 +23,7 @@ module "iam" {
 
 # 3. 정적 웹사이트 모듈 (S3 + CloudFront)
 module "static_website" {
-  source = "./30_static_website"
+  source = "./static_website"
 
   bucket_name        = var.bucket_name
   cloudfront_comment = var.cloudfront_comment
@@ -31,26 +31,36 @@ module "static_website" {
 
 # 4. GitHub OIDC 모듈
 module "github_oidc" {
-  source = "./40_github_oicd"
+  source = "./github_oicd"
 
   # 공통 변수
   github_owner = var.github_owner
 
   # 프론트엔드용 변수
   github_repo_frontend        = var.github_repo_frontend
-  s3_bucket_arn               = module.static_website.s3_bucket_arn
+  s3_bucket_arn               = module.static_website.bucket_arn
   cloudfront_distribution_arn = module.static_website.cloudfront_distribution_arn
 
   # 백엔드용 변수
   github_repo_backend             = var.github_repo_backend
   ecr_repository_arn              = var.spring_ecr_arn # 변수로 직접 ARN 전달
-  codedeploy_app_arn              = module.codedeploy.app_arn
+  codedeploy_app_arn              = module.codedeploy.backend_arn
   codedeploy_deployment_group_arn = module.codedeploy.deployment_group_arn
+}
+
+# 5. CodeDeploy 모듈
+module "codedeploy" {
+  source = "./codedeploy"
+
+  codedeploy_service_role_arn = module.iam.codedeploy_service_role_arn
+  alb_listener_arn            = module.network.alb_listener_arn
+  blue_target_group_name      = module.network.blue_target_group_name
+  green_target_group_name     = module.network.green_target_group_name
 }
 
 # 5. KMS 및 Secrets Manager 모듈
 module "kms_secrets" {
-  source = "./50_kms_secrets"
+  source = "./kms_secrets"
 
   kms_alias_name     = var.kms_alias_name
   gemini_api_key     = var.gemini_api_key
@@ -59,7 +69,7 @@ module "kms_secrets" {
 
 # 6. 데이터베이스 모듈
 module "database" {
-  source = "./60_database"
+  source = "./database"
 
   vpc_id             = module.network.vpc_id
   db_sg_id           = module.security.db_sg_id
@@ -71,7 +81,7 @@ module "database" {
 
 # 6. ElastiCache for Redis 모듈
 module "elasticache" {
-  source = "./60_elasticache"
+  source = "./cache"
 
   cluster_id         = "teammjk-redis-cluster"
   node_type          = "cache.t3.micro"
@@ -82,12 +92,12 @@ module "elasticache" {
 
 # 7. ECR 모듈
 module "ecr" {
-  source = "./70_ecr"
+  source = "./ecr"
 }
 
 # 8. 보안 그룹 모듈
 module "security" {
-  source = "./security"
+  source = "./security_group"
 
   vpc_id         = module.network.vpc_id
   ssh_allowed_ip = var.ssh_allowed_ip
@@ -95,7 +105,7 @@ module "security" {
 
 # 9. 컴퓨트 모듈 (Agent)
 module "compute_agent" {
-  source   = "./80_compute"
+  source   = "./compute"
   for_each = { for i, subnet_id in module.network.public_subnet_ids : i => subnet_id }
 
   aws_region        = var.aws_region
@@ -108,13 +118,13 @@ module "compute_agent" {
   vpc_id    = module.network.vpc_id
   subnet_id = each.value
 
-  user_data_script_path = "./80_compute/user_data_agent.sh"
+  user_data_script_path = "./compute/user_data_agent.sh"
   security_group_ids    = [module.security.agent_sg_id]
 }
 
 # 9. 컴퓨트 모듈 (Backend)
 module "compute_backend" {
-  source   = "./80_compute"
+  source   = "./compute"
   for_each = { for i, subnet_id in module.network.private_app_subnet_ids : i => subnet_id }
 
   aws_region        = var.aws_region
@@ -127,7 +137,7 @@ module "compute_backend" {
   vpc_id    = module.network.vpc_id
   subnet_id = each.value
 
-  user_data_script_path = "./80_compute/user_data_backend.sh"
+  user_data_script_path = "./compute/user_data_backend.sh"
   security_group_ids    = [module.security.backend_sg_id]
 
   db_instance_endpoint = module.database.db_instance_endpoint
