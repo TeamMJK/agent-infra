@@ -35,6 +35,18 @@ variable "github_repo_frontend" {
   default     = "agent-web"
 }
 
+variable "github_repo_backend" {
+  description = "백엔드 GitHub 레포지토리 이름"
+  type        = string
+  default     = "trip-agent-infra"
+}
+
+variable "spring_ecr_arn" {
+  description = "미리 생성된 Spring ECR 리포지토리의 ARN"
+  type        = string
+}
+
+
 # KMS 및 Secrets Manager 설정 변수들
 variable "kms_alias_name" {
   description = "KMS 키 별칭"

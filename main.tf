@@ -33,12 +33,19 @@ module "static_website" {
 module "github_oidc" {
   source = "./40_github_oicd"
 
-  github_owner         = var.github_owner
-  github_repo_frontend = var.github_repo_frontend
-  aws_account_id       = var.aws_account_id
+  # 공통 변수
+  github_owner = var.github_owner
 
-  s3_bucket                  = module.static_website.bucket_name
-  cloudfront_distribution_id = module.static_website.cloudfront_distribution_id
+  # 프론트엔드용 변수
+  github_repo_frontend        = var.github_repo_frontend
+  s3_bucket_arn               = module.static_website.s3_bucket_arn
+  cloudfront_distribution_arn = module.static_website.cloudfront_distribution_arn
+
+  # 백엔드용 변수
+  github_repo_backend             = var.github_repo_backend
+  ecr_repository_arn              = var.spring_ecr_arn # 변수로 직접 ARN 전달
+  codedeploy_app_arn              = module.codedeploy.app_arn
+  codedeploy_deployment_group_arn = module.codedeploy.deployment_group_arn
 }
 
 # 5. KMS 및 Secrets Manager 모듈
