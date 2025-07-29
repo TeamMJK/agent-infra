@@ -1,6 +1,7 @@
-<img width="971" height="636" alt="capstone_arch" src="https://github.com/user-attachments/assets/4e02d664-0975-4a5a-bb33-4099612eb801" />
+## Architecture
+<img width="1329" height="893" alt="image" src="https://github.com/user-attachments/assets/faa005aa-ba51-42c6-a3eb-6e7abf8a35fd" />
 
-
+## CI/CD Pipelines
 <img width="705" height="757" alt="capstone_CI:CD" src="https://github.com/user-attachments/assets/ce8cde82-3fb5-4a16-b851-99dbc339f5e9" />
 
 
