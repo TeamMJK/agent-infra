@@ -17,8 +17,8 @@ module "network" {
 module "iam" {
   source = "./iam"
 
-  db_secret_arn     = module.kms_secrets.db_secret_arn
-  gemini_secret_arn = module.kms_secrets.gemini_secret_arn
+  db_secret_arn          = module.kms_secrets.db_secret_arn
+  llm_api_key_secret_arn = module.kms_secrets.llm_api_key_secret_arn
 }
 
 # 3. 정적 웹사이트 모듈 (S3 + CloudFront)
@@ -63,7 +63,7 @@ module "kms_secrets" {
   source = "./kms_secrets"
 
   kms_alias_name     = var.kms_alias_name
-  gemini_api_key     = var.gemini_api_key
+  llm_api_key        = var.llm_api_key
   db_password_length = var.db_password_length
 }
 

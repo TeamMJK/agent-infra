@@ -3,8 +3,8 @@ variable "kms_alias_name" {
   default = "alias/teammjk-secrets-key"
 }
 
-variable "gemini_api_key" {
-  description = "Gemini(Google) API Key"
+variable "llm_api_key" {
+  description = "LLM API Key"
   type        = string
 }
 

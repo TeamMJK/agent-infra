@@ -3,7 +3,7 @@ variable "db_secret_arn" {
   type        = string
 }
 
-variable "gemini_secret_arn" {
-  description = "Gemini API Key 비밀의 ARN"
+variable "llm_api_key_secret_arn" {
+  description = "LLM API Key 비밀의 ARN"
   type        = string
 }

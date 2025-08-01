@@ -1,4 +1,3 @@
-
 # 1) 랜덤 비밀번호 생성
 resource "random_password" "db_password" {
   length           = var.db_password_length
@@ -27,10 +26,10 @@ resource "aws_kms_alias" "secrets_alias" {
   target_key_id = aws_kms_key.secrets.key_id
 }
 
-# 3) Secrets Manager 시크릿: Gemini API Key
-resource "aws_secretsmanager_secret" "gemini" {
-  name         = "/teammjk/geminiApiKey"
-  description  = "Gemini (Google) API Key"
+# 3) Secrets Manager 시크릿: LLM API Key
+resource "aws_secretsmanager_secret" "llm_api_key" {
+  name         = "/teammjk/llm_api_key"
+  description  = "LLM API Key"
   kms_key_id   = aws_kms_key.secrets.arn
   recovery_window_in_days = 7
   tags = {
@@ -38,9 +37,9 @@ resource "aws_secretsmanager_secret" "gemini" {
   }
 }
 
-resource "aws_secretsmanager_secret_version" "gemini_version" {
-  secret_id     = aws_secretsmanager_secret.gemini.id
-  secret_string = var.gemini_api_key
+resource "aws_secretsmanager_secret_version" "llm_api_key_version" {
+  secret_id     = aws_secretsmanager_secret.llm_api_key.id
+  secret_string = var.llm_api_key
 }
 
 # 4) Secrets Manager 시크릿: DB 자격증명

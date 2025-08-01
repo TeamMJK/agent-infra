@@ -1,12 +1,12 @@
 variable "aws_region" {
   description = "AWS 리전"
   type        = string
-  default = "ap-northeast-2"
+  default     = "ap-northeast-2"
 }
 
 # 기본 인프라 설정 변수들
-variable "gemini_api_key" {
-  description = "Gemini(Google) API Key"
+variable "llm_api_key" {
+  description = "LLM API Key"
   type        = string
   sensitive   = true
 }

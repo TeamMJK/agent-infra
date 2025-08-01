@@ -9,9 +9,9 @@ output "db_secret_arn" {
   description = "Secrets Manager /teammjk/db 시크릿 ARN"
 }
 
-output "gemini_secret_arn" {
-  value       = aws_secretsmanager_secret.gemini.arn
-  description = "Secrets Manager /teammjk/geminiApiKey 시크릿 ARN"
+output "llm_api_key_secret_arn" {
+  value       = aws_secretsmanager_secret.llm_api_key.arn
+  description = "Secrets Manager /teammjk/llm_api_key 시크릿 ARN"
 }
 
 output "kms_key_arn" {

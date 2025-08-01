@@ -30,9 +30,9 @@ output "db_secret_arn" {
   value       = module.kms_secrets.db_secret_arn
 }
 
-output "gemini_secret_arn" {
-  description = "Gemini API Key 비밀 ARN"
-  value       = module.kms_secrets.gemini_secret_arn
+output "llm_api_key_secret_arn" {
+  description = "LLM API Key 비밀 ARN"
+  value       = module.kms_secrets.llm_api_key_secret_arn
 }
 
 # IAM 관련

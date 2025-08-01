@@ -54,7 +54,7 @@ data "aws_iam_policy_document" "dev_backend_policy_doc" {
     actions = ["secretsmanager:GetSecretValue"]
     resources = [
       var.db_secret_arn,
-      var.gemini_secret_arn,
+      var.llm_api_key_secret_arn,
     ]
   }
 }
@@ -105,7 +105,7 @@ data "aws_iam_policy_document" "ec2_secrets_policy_doc" {
     sid       = "AllowSecretsManagerRead"
     effect    = "Allow"
     actions   = ["secretsmanager:GetSecretValue"]
-    resources = [var.db_secret_arn, var.gemini_secret_arn]
+    resources = [var.db_secret_arn, var.llm_api_key_secret_arn]
   }
 }
 
