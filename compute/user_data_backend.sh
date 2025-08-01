@@ -20,16 +20,28 @@ sudo systemctl enable docker || { echo "[ERROR] Docker 서비스 활성화 실�
 echo "[INFO] ec2-user를 docker 그룹에 추가 중..."
 sudo usermod -aG docker ec2-user || { echo "[ERROR] ec2-user를 docker 그룹에 추가 실패. 종료."; exit 1; }
 
-# 3. ECR (Elastic Container Registry) 로그인 설정
+# 3. CodeDeploy Agent 설치 및 실행
+echo "[INFO] CodeDeploy Agent 설치 중..."
+sudo dnf install -y ruby wget
+cd /home/ec2-user
+wget https://aws-codedeploy-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/latest/install
+chmod +x ./install
+sudo ./install auto || { echo "[ERROR] CodeDeploy Agent 설치 실패. 종료."; exit 1; }
+
+echo "[INFO] CodeDeploy Agent 서비스 시작 중..."
+sudo systemctl start codedeploy-agent || { echo "[ERROR] CodeDeploy Agent 시작 실패. 종료."; exit 1; }
+sudo systemctl enable codedeploy-agent || { echo "[ERROR] CodeDeploy Agent 활성화 실패. 종료."; exit 1; }
+
+# 4. ECR (Elastic Container Registry) 로그인 설정
 echo "[INFO] IAM 인스턴스 프로파일 자격 증명으로 ECR 로그인 중..."
 aws ecr get-login-password --region "${aws_region}" | sudo docker login --username AWS --password-stdin "${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com" || { echo "[ERROR] ECR 로그인 실패. IAM 권한 확인. 종료."; exit 1; }
 echo "[INFO] ECR 로그인 성공."
 
-# 4. Secrets Manager에서 DB 자격 증명 가져오기
+# 5. Secrets Manager에서 DB 자격 증명 가져오기
 echo "[INFO] Secrets Manager에서 DB 비밀번호 가져오기..."
 DB_PASSWORD=$(aws secretsmanager get-secret-value --secret-id /teammjk/db --query SecretString --output text | jq -r .password) || { echo "[ERROR] DB 비밀번호 가져오기 실패. 종료."; exit 1; }
 
-# 5. Docker Compose 파일 생성
+# 6. Docker Compose 파일 생성
 echo "[INFO] Docker Compose 파일 생성 중..."
 cat <<EOF > /home/ec2-user/docker-compose.yml
 version: '3.8'
@@ -45,7 +57,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://${db_instance_endpoint}:${db_instance_port}/teammjkdb
 EOF
 
-# 6. Docker Compose 실행
+# 7. Docker Compose 실행 (초기 애플리케이션 실행)
 echo "[INFO] Docker Compose 실행 중..."
 sudo docker-compose -f /home/ec2-user/docker-compose.yml up -d || { echo "[ERROR] Docker Compose 실행 실패. 종료."; exit 1; }
 
