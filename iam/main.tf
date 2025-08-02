@@ -136,7 +136,7 @@ resource "aws_iam_role_policy_attachment" "ec2_ssm_attach" {
 }
 
 # --- Instance Profile ---
-resource "aws_iam_instance_profile" "ec2_app_instance_profile" {
+resource "aws_iam_instance_profile" "ec2_instance_profile" {
   name = "teammjk-ec2-app-instance-profile"
   role = aws_iam_role.ec2_app_role.name
 }
