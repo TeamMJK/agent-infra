@@ -107,11 +107,12 @@ module "security" {
 module "compute_agent" {
   source = "./compute"
 
-  aws_region           = var.aws_region
-  instance_name_prefix = "teammjk-agent"
-  key_pair_name        = var.key_pair_name
-  ec2_instance_type    = var.ec2_instance_type
-  aws_account_id       = var.aws_account_id
+  aws_region                = var.aws_region
+  instance_name_prefix      = "teammjk-agent"
+  key_pair_name             = var.key_pair_name
+  ec2_instance_type         = var.ec2_instance_type
+  aws_account_id            = var.aws_account_id
+  iam_instance_profile_name = module.iam.ec2_app_instance_profile_name
 
   vpc_id         = module.network.vpc_id
   ssh_allowed_ip = var.ssh_allowed_ip
@@ -126,11 +127,12 @@ module "compute_agent" {
 module "compute_backend" {
   source = "./compute"
 
-  aws_region           = var.aws_region
-  instance_name_prefix = "teammjk-backend"
-  key_pair_name        = var.key_pair_name
-  ec2_instance_type    = var.ec2_instance_type
-  aws_account_id       = var.aws_account_id
+  aws_region                = var.aws_region
+  instance_name_prefix      = "teammjk-backend"
+  key_pair_name             = var.key_pair_name
+  ec2_instance_type         = var.ec2_instance_type
+  aws_account_id            = var.aws_account_id
+  iam_instance_profile_name = module.iam.ec2_app_instance_profile_name
 
   vpc_id         = module.network.vpc_id
   ssh_allowed_ip = var.ssh_allowed_ip

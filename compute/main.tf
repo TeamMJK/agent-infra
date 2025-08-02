@@ -1,34 +1,3 @@
-# 1) IAM 역할 및 프로파일 (변경 필요 없음)
-resource "aws_iam_role" "ec2_role" {
-  name               = "${var.instance_name_prefix}-role"
-  assume_role_policy = data.aws_iam_policy_document.instance_assume.json
-}
-
-data "aws_iam_policy_document" "instance_assume" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role_policy_attachment" "ecr" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
-
-resource "aws_iam_role_policy_attachment" "secrets" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
-}
-
-resource "aws_iam_instance_profile" "instance_profile" {
-  name = "${var.instance_name_prefix}-profile"
-  role = aws_iam_role.ec2_role.name
-}
-
 # AMI 데이터 소스 (변경 필요 없음)
 data "aws_ami" "amazon_linux_2023" {
   most_recent = true
@@ -57,8 +26,9 @@ resource "aws_launch_template" "main" {
   instance_type = var.ec2_instance_type
   key_name      = var.key_pair_name
 
+  # iam 모듈에서 생성한 인스턴스 프로파일을 이름으로 참조
   iam_instance_profile {
-    name = aws_iam_instance_profile.instance_profile.name
+    name = var.iam_instance_profile_name
   }
 
   vpc_security_group_ids = var.security_group_ids

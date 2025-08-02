@@ -43,6 +43,11 @@ variable "user_data_script_path" {
   type        = string
 }
 
+variable "iam_instance_profile_name" {
+  description = "EC2 인스턴스와 연결할 IAM 인스턴스 프로파일 이름"
+  type        = string
+}
+
 
 # ============
 # for backend
@@ -57,7 +62,7 @@ variable "target_group_arns" {
 variable "db_instance_endpoint" {
   description = "RDS DB 인스턴스 엔드포인트"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "db_instance_port" {
@@ -74,5 +79,5 @@ variable "security_group_ids" {
 variable "elasticache_endpoint" {
   description = "ElastiCache for Redis endpoint"
   type        = string
-  default     = ""
+  default     = null
 }
