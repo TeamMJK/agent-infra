@@ -28,7 +28,7 @@ resource "aws_db_instance" "db" {
   kms_key_id        = var.kms_key_arn # 5단계 생성한 CMK 사용 
 
   # 가용성 & 백업
-  multi_az                = false # 비용 절감용 단일 AZ
+  multi_az                = false # [test] 비용 절감용 단일 AZ
   backup_retention_period = 7     # 7일 간의 자동 백업 보관
   skip_final_snapshot     = true  # 최종 스냅샷 생략
 
