@@ -1,4 +1,4 @@
-variable "instance_name" {
+variable "instance_name_prefix" {
   description = "EC2 인스턴스의 Name 태그 값"
   type        = string
 }
@@ -13,9 +13,9 @@ variable "ec2_instance_type" {
   type        = string
 }
 
-variable "subnet_id" {
-  description = "EC2 인스턴스를 배치할 서브넷 ID"
-  type        = string
+variable "subnet_ids" {
+  description = "EC2 인스턴스가 배치될 서브넷 ID 목록 (Multi-AZ 지원)"
+  type        = list(string)
 }
 
 variable "vpc_id" {
@@ -38,21 +38,37 @@ variable "ssh_allowed_ip" {
   type        = string
 }
 
+variable "user_data_script_path" {
+  description = "EC2 인스턴스에 전달할 User Data 스크립트 경로"
+  type        = string
+}
+
+variable "iam_instance_profile_name" {
+  description = "EC2 인스턴스와 연결할 IAM 인스턴스 프로파일 이름"
+  type        = string
+}
+
+
+# ============
+# for backend
+# ============
+variable "target_group_arns" {
+  description = "인스턴스가 속할 ALB Target Group ARNs"
+  type        = list(string)
+  default     = []
+  
+}
+
 variable "db_instance_endpoint" {
   description = "RDS DB 인스턴스 엔드포인트"
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "db_instance_port" {
   description = "RDS DB 인스턴스 포트"
   type        = number
   default     = 5432
-}
-
-variable "user_data_script_path" {
-  description = "EC2 인스턴스에 전달할 User Data 스크립트 경로"
-  type        = string
 }
 
 variable "security_group_ids" {
@@ -63,5 +79,5 @@ variable "security_group_ids" {
 variable "elasticache_endpoint" {
   description = "ElastiCache for Redis endpoint"
   type        = string
-  default     = ""
+  default     = null
 }

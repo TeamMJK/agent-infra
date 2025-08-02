@@ -103,39 +103,41 @@ module "security" {
   ssh_allowed_ip = var.ssh_allowed_ip
 }
 
-# 9. 컴퓨트 모듈 (Agent)
+# 9. 컴퓨트 모듈 (Agent) - ASG 기반
 module "compute_agent" {
-  source   = "./compute"
-  for_each = { for i, subnet_id in module.network.public_subnet_ids : i => subnet_id }
+  source = "./compute"
 
-  aws_region        = var.aws_region
-  instance_name     = "teammjk-agent-instance-${each.key + 1}"
-  key_pair_name     = var.key_pair_name
-  ec2_instance_type = var.ec2_instance_type
-  aws_account_id    = var.aws_account_id
-  ssh_allowed_ip    = var.ssh_allowed_ip
+  aws_region                = var.aws_region
+  instance_name_prefix      = "teammjk-agent"
+  key_pair_name             = var.key_pair_name
+  ec2_instance_type         = var.ec2_instance_type
+  aws_account_id            = var.aws_account_id
+  iam_instance_profile_name = module.iam.ec2_app_instance_profile_name
 
-  vpc_id    = module.network.vpc_id
-  subnet_id = each.value
+  vpc_id         = module.network.vpc_id
+  ssh_allowed_ip = var.ssh_allowed_ip
+
+  subnet_ids = module.network.public_subnet_ids
 
   user_data_script_path = "./compute/user_data_agent.sh"
   security_group_ids    = [module.security.agent_sg_id]
 }
 
-# 9. 컴퓨트 모듈 (Backend)
+# 9. 컴퓨트 모듈 (Backend) - ASG 기반
 module "compute_backend" {
-  source   = "./compute"
-  for_each = { for i, subnet_id in module.network.private_app_subnet_ids : i => subnet_id }
+  source = "./compute"
 
-  aws_region        = var.aws_region
-  instance_name     = "teammjk-backend-instance-${each.key + 1}"
-  key_pair_name     = var.key_pair_name
-  ec2_instance_type = var.ec2_instance_type
-  aws_account_id    = var.aws_account_id
-  ssh_allowed_ip    = var.ssh_allowed_ip
+  aws_region                = var.aws_region
+  instance_name_prefix      = "teammjk-backend"
+  key_pair_name             = var.key_pair_name
+  ec2_instance_type         = var.ec2_instance_type
+  aws_account_id            = var.aws_account_id
+  iam_instance_profile_name = module.iam.ec2_app_instance_profile_name
 
-  vpc_id    = module.network.vpc_id
-  subnet_id = each.value
+  vpc_id         = module.network.vpc_id
+  ssh_allowed_ip = var.ssh_allowed_ip
+
+  subnet_ids = module.network.private_app_subnet_ids
 
   user_data_script_path = "./compute/user_data_backend.sh"
   security_group_ids    = [module.security.backend_sg_id]

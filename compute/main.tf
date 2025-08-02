@@ -1,51 +1,4 @@
-# 1) IAM Role & Profile
-resource "aws_iam_role" "ec2_role" {
-  name               = "${var.instance_name}-role"
-  assume_role_policy = data.aws_iam_policy_document.instance_assume.json
-}
-data "aws_iam_policy_document" "instance_assume" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
-}
-resource "aws_iam_role_policy_attachment" "ecr" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-}
-resource "aws_iam_role_policy_attachment" "secrets" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
-}
-resource "aws_iam_instance_profile" "instance_profile" {
-  name = "${var.instance_name}-profile"
-  role = aws_iam_role.ec2_role.name
-}
-
-# 2) EC2 인스턴스
-resource "aws_instance" "app" {
-  ami                    = data.aws_ami.amazon_linux_2023.id
-  instance_type          = var.ec2_instance_type
-  key_name               = var.key_pair_name
-  iam_instance_profile   = aws_iam_instance_profile.instance_profile.name
-  subnet_id              = var.subnet_id
-  vpc_security_group_ids = var.security_group_ids
-  user_data = templatefile(var.user_data_script_path, {
-    aws_account_id       = var.aws_account_id
-    aws_region           = var.aws_region
-    db_instance_endpoint = var.db_instance_endpoint
-    db_instance_port     = var.db_instance_port
-    elasticache_endpoint = var.elasticache_endpoint
-  })
-
-  tags = { Name = var.instance_name }
-}
-
-# AMI 데이터 소스
-# Amazon Linux 2023 AMI
+# AMI 데이터 소스 (변경 필요 없음)
 data "aws_ami" "amazon_linux_2023" {
   most_recent = true
   owners      = ["amazon"]
@@ -63,5 +16,80 @@ data "aws_ami" "amazon_linux_2023" {
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
+  }
+}
+
+# 2) Launch Template (기존 aws_instance 대체)
+resource "aws_launch_template" "main" {
+  name_prefix   = "${var.instance_name_prefix}-lt-"
+  image_id      = data.aws_ami.amazon_linux_2023.id
+  instance_type = var.ec2_instance_type
+  key_name      = var.key_pair_name
+
+  # iam 모듈에서 생성한 인스턴스 프로파일을 이름으로 참조
+  iam_instance_profile {
+    name = var.iam_instance_profile_name
+  }
+
+  vpc_security_group_ids = var.security_group_ids
+
+  user_data = base64encode(templatefile(var.user_data_script_path, {
+    aws_account_id       = var.aws_account_id
+    aws_region           = var.aws_region
+    db_instance_endpoint = var.db_instance_endpoint
+    db_instance_port     = var.db_instance_port
+    elasticache_endpoint = var.elasticache_endpoint
+  }))
+
+  # 인스턴스가 식별을 위해 올바르게 태그되도록 보장
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = var.instance_name_prefix
+    }
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# 3) Auto Scaling Group
+resource "aws_autoscaling_group" "main" {
+  name_prefix = "${var.instance_name_prefix}-asg-"
+
+  # 스케일링 설정
+  min_size             = 1
+  max_size             = 4
+  desired_capacity     = 1
+
+  # 위치 및 상태 확인
+  vpc_zone_identifier       = var.subnet_ids
+  health_check_type         = "EC2"
+  health_check_grace_period = 300 # 인스턴스가 시작될 시간을 부여
+
+  # Launch Template 사용
+  launch_template {
+    id      = aws_launch_template.main.id
+    version = "$Latest"
+  }
+
+  # ALB 대상 그룹에 연결 (현재는 비어 있음)
+  target_group_arns = var.target_group_arns
+
+  # 이 Auto Scaling Group이 생성한 인스턴스에 태그 지정
+  tag {
+    key                 = "Name"
+    value               = var.instance_name_prefix
+    propagate_at_launch = true
+  }
+  tag {
+    key                 = "AmazonEC2ContainerService-managed" # 향후 ECS 연동 가능성을 위함
+    value               = ""
+    propagate_at_launch = true
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
