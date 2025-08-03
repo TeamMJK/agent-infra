@@ -74,9 +74,14 @@ output "github_oidc_provider_arn" {
   value       = module.github_oidc.github_oidc_provider_arn
 }
 
-output "github_actions_role_arn" {
-  description = "GitHub Actions IAM Role ARN"
-  value       = module.github_oidc.github_actions_role_arn
+output "github_actions_frontend_role_arn" {
+  description = "프론트엔드 GitHub Actions를 위한 IAM Role의 ARN"
+  value       = module.github_oidc.github_actions_frontend_role_arn
+}
+
+output "github_actions_backend_role_arn" {
+  description = "백엔드 GitHub Actions를 위한 IAM Role의 ARN"
+  value       = module.github_oidc.github_actions_backend_role_arn
 }
 
 # 데이터베이스 관련

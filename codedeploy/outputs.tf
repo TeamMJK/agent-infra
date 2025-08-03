@@ -3,7 +3,7 @@ output "app_name" {
   value       = aws_codedeploy_app.backend.name
 }
 
-output "app_arn" {
+output "backend_arn" {
   description = "CodeDeploy 애플리케이션의 ARN"
   value       = aws_codedeploy_app.backend.arn
 }
