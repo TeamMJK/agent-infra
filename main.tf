@@ -53,9 +53,9 @@ module "codedeploy" {
   source = "./codedeploy"
 
   codedeploy_service_role_arn = module.iam.codedeploy_service_role_arn
-  alb_listener_arn            = module.network.alb_listener_arn
-  blue_target_group_name      = module.network.blue_target_group_name
-  green_target_group_name     = module.network.green_target_group_name
+  alb_listener_arn            = module.alb.http_listener_arn
+  blue_target_group_name      = module.alb.blue_target_group_name
+  green_target_group_name     = module.alb.green_target_group_name
 }
 
 # 5. KMS 및 Secrets Manager 모듈
@@ -103,7 +103,16 @@ module "security" {
   ssh_allowed_ip = var.ssh_allowed_ip
 }
 
-# 9. 컴퓨트 모듈 (Agent) - ASG 기반
+# 9. ALB 모듈
+module "alb" {
+  source = "./alb"
+
+  vpc_id             = module.network.vpc_id
+  subnet_ids         = module.network.public_subnet_ids
+  security_group_ids = [module.security.alb_sg_id]
+}
+
+# 10. 컴퓨트 모듈 (Agent) - ASG 기반
 module "compute_agent" {
   source = "./compute"
 
