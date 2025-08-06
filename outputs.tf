@@ -4,14 +4,14 @@ output "vpc_id" {
   value       = module.network.vpc_id
 }
 
-output "private_subnets" {
+output "private_backend_subnets" {
   description = "Private 서브넷 ID 리스트"
-  value       = module.network.public_subnet_ids
+  value       = module.network.public_agent_subnet_ids
 }
 
-output "public_subnets" {
+output "public_agent_subnet_list" {
   description = "Public 서브넷 ID 리스트"
-  value       = module.network.public_subnet_ids
+  value       = module.network.public_agent_subnet_ids
 }
 
 # KMS 및 Secrets Manager 관련

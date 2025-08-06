@@ -7,6 +7,7 @@ variable "aws_region" {
 variable "vpc_cidr" {
   description = "VPC CIDR 블록"
   type        = string
+  default     = "10.0.0.0/16"
 }
 
 # 기본 인프라 설정 변수들
@@ -103,7 +104,7 @@ variable "public_agent_subnet_cidrs" {
   default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
-variable "private_app_subnet_cidrs" {
+variable "private_backend_subnet_cidrs" {
   description = "Private app subnet CIDR blocks"
   type        = list(string)
   default     = ["10.0.101.0/24", "10.0.102.0/24"]

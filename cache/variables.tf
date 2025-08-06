@@ -8,7 +8,7 @@ variable "node_type" {
   type        = string
 }
 
-variable "private_subnet_ids" {
+variable "private_backend_subnet_ids" {
   description = "List of private subnet IDs for ElastiCache"
   type        = list(string)
 }

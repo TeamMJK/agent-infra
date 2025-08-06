@@ -11,7 +11,7 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "private_subnet_ids" {
+variable "private_backend_subnet_ids" {
   description = "Private 서브넷 ID 리스트"
   type        = list(string)
 }
