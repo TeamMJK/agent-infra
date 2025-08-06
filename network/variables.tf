@@ -1,7 +1,12 @@
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  
+}
+
+variable "vpc_cidr" {
+  description = "VPC CIDR 블록"
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "public_agent_subnet_cidrs" {

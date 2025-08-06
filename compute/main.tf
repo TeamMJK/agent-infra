@@ -19,14 +19,13 @@ data "aws_ami" "amazon_linux_2023" {
   }
 }
 
-# 2) Launch Template (기존 aws_instance 대체)
+# 2) Launch Template
 resource "aws_launch_template" "main" {
   name_prefix   = "${var.instance_name_prefix}-lt-"
   image_id      = data.aws_ami.amazon_linux_2023.id
   instance_type = var.ec2_instance_type
   key_name      = var.key_pair_name
 
-  # iam 모듈에서 생성한 인스턴스 프로파일을 이름으로 참조
   iam_instance_profile {
     name = var.iam_instance_profile_name
   }
@@ -41,7 +40,6 @@ resource "aws_launch_template" "main" {
     elasticache_endpoint = var.elasticache_endpoint
   }))
 
-  # 인스턴스가 식별을 위해 올바르게 태그되도록 보장
   tag_specifications {
     resource_type = "instance"
     tags = {
@@ -59,9 +57,9 @@ resource "aws_autoscaling_group" "main" {
   name_prefix = "${var.instance_name_prefix}-asg-"
 
   # 스케일링 설정
-  min_size             = 1
-  max_size             = 4
-  desired_capacity     = 1
+  min_size         = 1
+  max_size         = 4
+  desired_capacity = 1
 
   # 위치 및 상태 확인
   vpc_zone_identifier       = var.subnet_ids
@@ -74,7 +72,7 @@ resource "aws_autoscaling_group" "main" {
     version = "$Latest"
   }
 
-  # ALB 대상 그룹에 연결 (현재는 비어 있음)
+  # ALB 대상 그룹에 연결
   target_group_arns = var.target_group_arns
 
   # 이 Auto Scaling Group이 생성한 인스턴스에 태그 지정

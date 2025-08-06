@@ -132,7 +132,7 @@ module "compute_agent" {
   security_group_ids    = [module.security.agent_sg_id]
 }
 
-# 9. 컴퓨트 모듈 (Backend) - ASG 기반
+# 10. 컴퓨트 모듈 (Backend) - ASG 기반
 module "compute_backend" {
   source = "./compute"
 
@@ -150,6 +150,12 @@ module "compute_backend" {
 
   user_data_script_path = "./compute/user_data_backend.sh"
   security_group_ids    = [module.security.backend_sg_id]
+
+  # ALB Target Groups에 연결
+  target_group_arns = [
+    module.alb.blue_target_group_arn,
+    module.alb.green_target_group_arn
+  ]
 
   db_instance_endpoint = module.database.db_instance_endpoint
   db_instance_port     = module.database.db_instance_port

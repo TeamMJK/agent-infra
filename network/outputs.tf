@@ -22,3 +22,8 @@ output "vpc_endpoint_sg_id" {
   description = "The ID of the security group for VPC endpoints"
   value       = aws_security_group.vpc_endpoint.id
 }
+
+output "private_app_route_table_id" {
+  description = "Private App Subnet에 연결된 라우팅 테이블의 ID"
+  value       = aws_route_table.private_app.id
+}

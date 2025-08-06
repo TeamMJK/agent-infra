@@ -1,5 +1,5 @@
 resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
 
@@ -121,7 +121,7 @@ resource "aws_route_table_association" "private_db" {
 
 
 # ====================================================================================
-# Nat Gateway (단일 AZ))
+# NAT Gateway (단일 AZ - 비용절감)
 # ====================================================================================
 
 # Elastic IP for NAT Gateway
@@ -132,7 +132,7 @@ resource "aws_eip" "nat" {
   }
 }
 
-# NAT Gateway
+# NAT Gateway (첫 번째 Public Subnet에만 배치)
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
   subnet_id     = values(aws_subnet.public_agent)[0].id
@@ -140,8 +140,9 @@ resource "aws_nat_gateway" "main" {
   tags = {
     Name = "teammjk-nat-gateway"
   }
-}
 
+  depends_on = [aws_internet_gateway.main]
+}
 
 # ====================================================================================
 # VPC Endpoint
