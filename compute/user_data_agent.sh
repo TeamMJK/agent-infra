@@ -46,7 +46,7 @@ sudo docker run -d \
   --name agent-app \
   -p 8000:8000 \
   --restart always \
-  -e LLM_API_KEY="${LLM_API_KEY}" \
+  -e LLM_API_KEY="$${LLM_API_KEY}" \
   "${aws_account_id}.dkr.ecr.${aws_region}.amazonaws.com/agent-ecr:latest" || { echo "[ERROR] Agent App 컨테이너 실행 실패. 종료."; exit 1; }
 
 echo "[INFO] Agent App 컨테이너 시작됨."

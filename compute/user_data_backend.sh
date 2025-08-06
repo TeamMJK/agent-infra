@@ -53,7 +53,7 @@ services:
     environment:
       - REDIS_HOST=${elasticache_endpoint}
       - SPRING_DATASOURCE_USERNAME=masteruser
-      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_DATASOURCE_PASSWORD=$${DB_PASSWORD}
       - SPRING_DATASOURCE_URL=jdbc:postgresql://${db_instance_endpoint}:${db_instance_port}/teammjkdb
 EOF
 
