@@ -61,8 +61,8 @@ resource "aws_autoscaling_group" "main" {
   max_size         = 4
   desired_capacity = 1
 
-  # 위치 및 상태 확인
-  vpc_zone_identifier       = var.subnet_ids
+  # Single AZ [single-az-refactor]
+  vpc_zone_identifier       = var.subnet_ids # [single-az-refactor] Single AZ 서브넷만 포함
   health_check_type         = "EC2"
   health_check_grace_period = 300 # 인스턴스가 시작될 시간을 부여
 
@@ -84,6 +84,12 @@ resource "aws_autoscaling_group" "main" {
   tag {
     key                 = "AmazonEC2ContainerService-managed" # 향후 ECS 연동 가능성을 위함
     value               = ""
+    propagate_at_launch = true
+  }
+  # [single-az-refactor] Single AZ Tag
+  tag {
+    key                 = "AZConfiguration"
+    value               = "single-az"
     propagate_at_launch = true
   }
 

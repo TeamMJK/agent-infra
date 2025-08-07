@@ -101,24 +101,37 @@ variable "ec2_instance_type" {
 variable "public_agent_subnet_cidrs" {
   description = "Public subnet CIDR blocks"
   type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24"]
+  # Multi-AZ 설정 (고가용성)
+  # default     = ["10.0.1.0/24", "10.0.2.0/24"]
+  # Single AZ 설정 [single-az-refactor]
+  default     = ["10.0.1.0/24"]
 }
 
 variable "private_backend_subnet_cidrs" {
   description = "Private app subnet CIDR blocks"
   type        = list(string)
-  default     = ["10.0.101.0/24", "10.0.102.0/24"]
+  # Multi-AZ 설정 (고가용성)
+  # default     = ["10.0.101.0/24", "10.0.102.0/24"]
+  # Single AZ 설정 [single-az-refactor]
+  default     = ["10.0.101.0/24"]
 }
 
 variable "private_db_subnet_cidrs" {
   description = "Private db subnet CIDR blocks"
   type        = list(string)
+  # Multi-AZ 설정 (고가용성)
+  # default     = ["10.0.201.0/24", "10.0.202.0/24"]
+  # Single AZ 설정 [single-az-refactor] - RDS/ElastiCache Subnet Group은 최소 2개 서브넷 필요
+  # 따라서 같은 AZ 내에서 2개 서브넷 사용
   default     = ["10.0.201.0/24", "10.0.202.0/24"]
 }
 
 variable "availability_zones" {
   description = "Availability zones list"
   type        = list(string)
-  default     = ["ap-northeast-2a", "ap-northeast-2b"]
+  # Multi-AZ 설정 (고가용성)
+  # default     = ["ap-northeast-2a", "ap-northeast-2b"]
+  # Single AZ 설정 [single-az-refactor]
+  default     = ["ap-northeast-2a"]
 }
 
