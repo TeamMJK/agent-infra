@@ -147,68 +147,16 @@ resource "aws_nat_gateway" "main" {
 }
 
 # ====================================================================================
-# VPC Endpoint
+# VPC Endpoint - S3만 유지 (Gateway, 무료)
 # ====================================================================================
 
-# VPC Endpoint 설정 표준화를 위한 로컬 변수
-locals {
-  # Interface VPC Endpoints 설정
-  interface_vpc_endpoints = {
-    ecr_api        = "ecr.api"
-    ecr_dkr        = "ecr.dkr"
-    codedeploy     = "codedeploy"
-    secretsmanager = "secretsmanager"
-    ssm            = "ssm"
-    ssm_messages   = "ssmmessages"
-    ec2_messages   = "ec2messages"
-  }
-  
-  # 공통 VPC Endpoint 설정
-  common_vpc_endpoint_config = {
-    vpc_endpoint_type   = "Interface"
-    private_dns_enabled = true
-    subnet_ids          = [for s in aws_subnet.private_backend : s.id]
-    security_group_ids  = [aws_security_group.vpc_endpoint.id]
-  }
-}
-
-resource "aws_security_group" "vpc_endpoint" {
-  name        = "teammjk-vpc-endpoint-sg"
-  description = "Security group for all VPC endpoints (ECR, CodeDeploy, Secrets Manager, SSM)"
-  vpc_id      = aws_vpc.main.id
-
-  ingress {
-    description = "HTTPS from VPC for all VPC endpoint communication"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block]
-  }
-
-  tags = {
-    Name = "teammjk-vpc-endpoint-sg"
-  }
-}
-
+# S3 Gateway Endpoint - 무료이며 S3 접근 최적화를 위해 유지
 resource "aws_vpc_endpoint" "s3" {
   vpc_id          = aws_vpc.main.id
   service_name    = "com.amazonaws.${var.aws_region}.s3"
   route_table_ids = [aws_route_table.private_backend.id, aws_route_table.private_db.id]
-}
-
-# Interface VPC Endpoints - 표준화된 설정으로 생성
-resource "aws_vpc_endpoint" "interface_endpoints" {
-  for_each = local.interface_vpc_endpoints
-
-  vpc_id              = aws_vpc.main.id
-  service_name        = "com.amazonaws.${var.aws_region}.${each.value}"
-  vpc_endpoint_type   = local.common_vpc_endpoint_config.vpc_endpoint_type
-  private_dns_enabled = local.common_vpc_endpoint_config.private_dns_enabled
-
-  subnet_ids         = local.common_vpc_endpoint_config.subnet_ids
-  security_group_ids = local.common_vpc_endpoint_config.security_group_ids
-
+  
   tags = {
-    Name = "teammjk-${each.key}-vpc-endpoint"
+    Name = "teammjk-s3-vpc-endpoint"
   }
 }
