@@ -10,10 +10,11 @@ module "network" {
   private_backend_subnet_cidrs = var.private_backend_subnet_cidrs
   private_db_subnet_cidrs      = var.private_db_subnet_cidrs
 
+  private_backend_subnet_ids = module.network.private_backend_subnet_ids
+
   availability_zones         = var.availability_zones
   aws_region                 = var.aws_region
   vpc_id                     = module.network.vpc_id
-  private_backend_subnet_ids = module.network.private_backend_subnet_ids
 }
 
 # 2. IAM 사용자 및 정책 모듈
@@ -104,16 +105,6 @@ module "security" {
 
   vpc_id         = module.network.vpc_id
   ssh_allowed_ip = var.ssh_allowed_ip
-}
-
-# 9. SSM 모듈 (Systems Manager Session Manager)
-module "ssm" {
-  source = "./ssm"
-
-  vpc_id                     = module.network.vpc_id
-  aws_region                 = var.aws_region
-  private_backend_subnet_ids = module.network.private_backend_subnet_ids
-  vpc_cidr                   = var.vpc_cidr
 }
 
 # 10. ALB 모듈

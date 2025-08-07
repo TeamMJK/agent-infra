@@ -3,6 +3,12 @@ resource "aws_db_subnet_group" "db_subnet_group" {
   name        = "teammjk-db-subnet-group"
   subnet_ids  = var.private_backend_subnet_ids
   description = "RDS Private Subnet Group for teammjk"
+  
+  # Single AZ: [single-az-refactor]
+  tags = {
+    Name = "teammjk-db-subnet-group"
+    AZConfiguration = "single-az" # 태그로 Single AZ 구성임을 명시
+  }
 }
 
 # 2) RDS 인스턴스
@@ -28,7 +34,7 @@ resource "aws_db_instance" "db" {
   kms_key_id        = var.kms_key_arn # 5단계 생성한 CMK 사용 
 
   # 가용성 & 백업
-  multi_az                = false # [test] 비용 절감용 단일 AZ
+  multi_az                = false # Single AZ 비용 최적화: 단일 AZ에서만 실행 (고가용성 대신 비용 절감)
   backup_retention_period = 7     # 7일 간의 자동 백업 보관
   skip_final_snapshot     = true  # 최종 스냅샷 생략
 

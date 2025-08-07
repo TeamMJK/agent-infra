@@ -10,6 +10,9 @@ resource "aws_lb" "main" {
 
   tags = {
     Name = "teammjk-alb"
+    # Single AZ 설정 [single-az-refactor]
+    AZConfiguration = "single-az"
+    Environment = "cost-optimized" # 비용 최적화 구성임을 명시
   }
 }
 
