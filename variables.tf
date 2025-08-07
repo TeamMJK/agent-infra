@@ -4,6 +4,12 @@ variable "aws_region" {
   default     = "ap-northeast-2"
 }
 
+variable "vpc_cidr" {
+  description = "VPC CIDR 블록"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
 # 기본 인프라 설정 변수들
 variable "llm_api_key" {
   description = "LLM API Key"
@@ -17,7 +23,7 @@ variable "aws_account_id" {
 }
 
 variable "ssh_allowed_ip" {
-  description = "EC2 SSH 접근 허용 IP"
+  description = "EC2 SSH 접근 허용 IP (Agent 서버용)"
   type        = string
   sensitive   = true
 }
@@ -98,7 +104,7 @@ variable "public_agent_subnet_cidrs" {
   default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
-variable "private_app_subnet_cidrs" {
+variable "private_backend_subnet_cidrs" {
   description = "Private app subnet CIDR blocks"
   type        = list(string)
   default     = ["10.0.101.0/24", "10.0.102.0/24"]
@@ -115,6 +121,4 @@ variable "availability_zones" {
   type        = list(string)
   default     = ["ap-northeast-2a", "ap-northeast-2b"]
 }
-
-
 

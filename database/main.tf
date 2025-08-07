@@ -1,7 +1,7 @@
 # 1) DB Subnet Group
 resource "aws_db_subnet_group" "db_subnet_group" {
   name        = "teammjk-db-subnet-group"
-  subnet_ids  = var.private_subnet_ids
+  subnet_ids  = var.private_backend_subnet_ids
   description = "RDS Private Subnet Group for teammjk"
 }
 

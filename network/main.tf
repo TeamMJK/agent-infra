@@ -1,5 +1,5 @@
 resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
   enable_dns_support   = true
 
@@ -56,8 +56,8 @@ resource "aws_route_table_association" "public" {
 # ====================================================================================
 # Private Subnets - Spring Boot
 # ====================================================================================
-resource "aws_subnet" "private_app" {
-  for_each = { for i, cidr in var.private_app_subnet_cidrs : i => cidr }
+resource "aws_subnet" "private_backend" {
+  for_each = { for i, cidr in var.private_backend_subnet_cidrs : i => cidr }
 
   vpc_id            = aws_vpc.main.id
   cidr_block        = each.value
@@ -68,7 +68,7 @@ resource "aws_subnet" "private_app" {
   }
 }
 
-resource "aws_route_table" "private_app" {
+resource "aws_route_table" "private_backend" {
   vpc_id = aws_vpc.main.id
 
   route {
@@ -81,11 +81,11 @@ resource "aws_route_table" "private_app" {
   }
 }
 
-resource "aws_route_table_association" "private_app" {
-  for_each = aws_subnet.private_app
+resource "aws_route_table_association" "private_backend" {
+  for_each = aws_subnet.private_backend
 
   subnet_id      = each.value.id
-  route_table_id = aws_route_table.private_app.id
+  route_table_id = aws_route_table.private_backend.id
 }
 
 
@@ -121,7 +121,7 @@ resource "aws_route_table_association" "private_db" {
 
 
 # ====================================================================================
-# Nat Gateway (단일 AZ))
+# NAT Gateway (단일 AZ - 비용절감)
 # ====================================================================================
 
 # Elastic IP for NAT Gateway
@@ -132,7 +132,7 @@ resource "aws_eip" "nat" {
   }
 }
 
-# NAT Gateway
+# NAT Gateway (첫 번째 Public Subnet에만 배치)
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
   subnet_id     = values(aws_subnet.public_agent)[0].id
@@ -140,8 +140,9 @@ resource "aws_nat_gateway" "main" {
   tags = {
     Name = "teammjk-nat-gateway"
   }
-}
 
+  depends_on = [aws_internet_gateway.main]
+}
 
 # ====================================================================================
 # VPC Endpoint
@@ -168,7 +169,7 @@ resource "aws_security_group" "vpc_endpoint" {
 resource "aws_vpc_endpoint" "s3" {
   vpc_id          = aws_vpc.main.id
   service_name    = "com.amazonaws.${var.aws_region}.s3"
-  route_table_ids = [aws_route_table.private_app.id, aws_route_table.private_db.id]
+  route_table_ids = [aws_route_table.private_backend.id, aws_route_table.private_db.id]
 }
 
 resource "aws_vpc_endpoint" "ecr_api" {
@@ -177,7 +178,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids = [for s in aws_subnet.private_app : s.id]
+  subnet_ids = [for s in aws_subnet.private_backend : s.id]
   security_group_ids = [
     aws_security_group.vpc_endpoint.id,
   ]
@@ -193,7 +194,7 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids = [for s in aws_subnet.private_app : s.id]
+  subnet_ids = [for s in aws_subnet.private_backend : s.id]
   security_group_ids = [
     aws_security_group.vpc_endpoint.id,
   ]
@@ -209,7 +210,7 @@ resource "aws_vpc_endpoint" "codedeploy" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids = [for s in aws_subnet.private_app : s.id]
+  subnet_ids = [for s in aws_subnet.private_backend : s.id]
   security_group_ids = [
     aws_security_group.vpc_endpoint.id,
   ]
@@ -225,7 +226,7 @@ resource "aws_vpc_endpoint" "secretsmanager" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids = [for s in aws_subnet.private_app : s.id]
+  subnet_ids = [for s in aws_subnet.private_backend : s.id]
   security_group_ids = [
     aws_security_group.vpc_endpoint.id,
   ]
@@ -241,12 +242,86 @@ resource "aws_vpc_endpoint" "logs" {
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
 
-  subnet_ids = [for s in aws_subnet.private_app : s.id]
+  subnet_ids = [for s in aws_subnet.private_backend : s.id]
   security_group_ids = [
     aws_security_group.vpc_endpoint.id,
   ]
 
   tags = {
     Name = "teammjk-logs-vpc-endpoint"
+  }
+}
+
+# ==================================================
+# SSM VPC Endpoint - 기본 SSM 서비스
+# ==================================================
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ssm"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = var.private_backend_subnet_ids
+  security_group_ids = [aws_security_group.ssm_endpoint_sg.id]
+
+  tags = {
+    Name = "teammjk-ssm-vpc-endpoint"
+  }
+}
+
+
+# ==================================================
+# SSM Messages VPC Endpoint - Session Manager 통신용
+# ==================================================
+resource "aws_vpc_endpoint" "ssm_messages" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ssmmessages"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = var.private_backend_subnet_ids
+  security_group_ids = [aws_security_group.ssm_endpoint_sg.id]
+
+  tags = {
+    Name = "teammjk-ssmmessages-vpc-endpoint"
+  }
+}
+
+# ==================================================
+# EC2 Messages VPC Endpoint - EC2 인스턴스 통신용
+# ==================================================
+resource "aws_vpc_endpoint" "ec2_messages" {
+  vpc_id              = var.vpc_id
+  service_name        = "com.amazonaws.${var.aws_region}.ec2messages"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = var.private_backend_subnet_ids
+  security_group_ids = [aws_security_group.ssm_endpoint_sg.id]
+
+  tags = {
+    Name = "teammjk-ec2messages-vpc-endpoint"
+  }
+}
+
+# ==================================================
+# SSM VPC Endpoint용 Security Group
+# ==================================================
+resource "aws_security_group" "ssm_endpoint_sg" {
+  name        = "teammjk-ssm-endpoint-sg"
+  description = "Security group for SSM VPC endpoints"
+  vpc_id      = var.vpc_id
+
+  # Private subnet의 EC2에서 SSM 접근 허용
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+    description = "HTTPS from VPC for SSM communication"
+  }
+
+  tags = {
+    Name = "teammjk-ssm-endpoint-sg"
   }
 }
