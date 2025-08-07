@@ -27,23 +27,3 @@ output "private_backend_route_table_id" {
   description = "Private App Subnet에 연결된 라우팅 테이블의 ID"
   value       = aws_route_table.private_backend.id
 }
-
-output "ssm_endpoint_sg_id" {
-  description = "Security group ID for SSM VPC endpoints"
-  value       = aws_security_group.ssm_endpoint_sg.id
-}
-
-output "ssm_vpc_endpoint_id" {
-  description = "SSM VPC endpoint ID"
-  value       = aws_vpc_endpoint.ssm.id
-}
-
-output "ssm_messages_vpc_endpoint_id" {
-  description = "SSM Messages VPC endpoint ID"
-  value       = aws_vpc_endpoint.ssm_messages.id
-}
-
-output "ec2_messages_vpc_endpoint_id" {
-  description = "EC2 Messages VPC endpoint ID"
-  value       = aws_vpc_endpoint.ec2_messages.id
-}
