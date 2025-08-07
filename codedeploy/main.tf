@@ -30,7 +30,8 @@ resource "aws_codedeploy_deployment_group" "backend" {
 
     terminate_blue_instances_on_deployment_success {
       action                           = "TERMINATE"
-      termination_wait_time_in_minutes = 5
+      # Blue 인스턴스 종료 전 Green 인스턴스 안정성 확인 시간 확보
+      termination_wait_time_in_minutes = 10
     }
   }
 
@@ -52,6 +53,14 @@ resource "aws_codedeploy_deployment_group" "backend" {
 
   auto_rollback_configuration {
     enabled = true
-    events  = ["DEPLOYMENT_FAILURE"]
+    # Single AZ 환경에서 더 민감한 롤백 조건 설정
+    events  = ["DEPLOYMENT_FAILURE", "DEPLOYMENT_STOP_ON_ALARM"]
+  }
+
+  # Single AZ 환경 식별을 위한 태그 추가
+  tags = {
+    Name = "teammjk-backend-deployment-group"
+    Environment = "single-az"
+    DeploymentStrategy = "blue-green-single-az"
   }
 }
