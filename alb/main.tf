@@ -38,27 +38,6 @@ resource "aws_lb_target_group" "blue" {
   }
 }
 
-resource "aws_lb_target_group" "green" {
-  name     = "teammjk-green-tg"
-  port     = 8080
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
-
-  health_check {
-    path                = "/"
-    protocol            = "HTTP"
-    matcher             = "200"
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-  }
-
-  tags = {
-    Name = "teammjk-green-tg"
-  }
-}
-
 # 3. Listener
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn

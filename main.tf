@@ -12,9 +12,9 @@ module "network" {
 
   private_backend_subnet_ids = module.network.private_backend_subnet_ids
 
-  availability_zones         = var.availability_zones
-  aws_region                 = var.aws_region
-  vpc_id                     = module.network.vpc_id
+  availability_zones = var.availability_zones
+  aws_region         = var.aws_region
+  vpc_id             = module.network.vpc_id
 }
 
 # 2. IAM 사용자 및 정책 모듈
@@ -59,7 +59,6 @@ module "codedeploy" {
   codedeploy_service_role_arn = module.iam.codedeploy_service_role_arn
   alb_listener_arn            = module.alb.http_listener_arn
   blue_target_group_name      = module.alb.blue_target_group_name
-  green_target_group_name     = module.alb.green_target_group_name
 }
 
 # 5. KMS 및 Secrets Manager 모듈
@@ -157,8 +156,7 @@ module "compute_backend" {
 
   # ALB Target Groups에 연결
   target_group_arns = [
-    module.alb.blue_target_group_arn,
-    module.alb.green_target_group_arn
+    module.alb.blue_target_group_arn
   ]
 
   db_instance_endpoint = module.database.db_instance_endpoint

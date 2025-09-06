@@ -24,8 +24,3 @@ variable "blue_target_group_name" {
   description = "Blue 타겟 그룹의 이름"
   type        = string
 }
-
-variable "green_target_group_name" {
-  description = "Green 타겟 그룹의 이름"
-  type        = string
-}

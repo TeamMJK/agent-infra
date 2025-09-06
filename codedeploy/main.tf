@@ -44,10 +44,6 @@ resource "aws_codedeploy_deployment_group" "backend" {
       target_group {
         name = var.blue_target_group_name
       }
-
-      target_group {
-        name = var.green_target_group_name
-      }
     }
   }
 
